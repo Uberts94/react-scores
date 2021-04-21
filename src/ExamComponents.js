@@ -1,6 +1,8 @@
 import { Col, Table } from 'react-bootstrap';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { iconDelete, iconEdit } from './icons';
+
+import { PrivacyMode, EditMode } from './createContexts';
 
 
 function ExamScores(props) {
@@ -41,14 +43,22 @@ function ExamTable(props) {
 }
 
 function ExamRow(props) {
-  return <tr><ExamRowData exam={props.exam} examName={props.examName} /><RowControls exam={props.exam} deleteExam={props.deleteExam} /></tr>
+  return (<tr>
+    <ExamRowData exam={props.exam} examName={props.examName} />
+    <EditMode.Consumer>
+      {editable => editable ?
+        <RowControls exam={props.exam} deleteExam={props.deleteExam} /> :
+        <td><i>disabled</i></td>}
+    </EditMode.Consumer>
+  </tr>);
 }
 
 function ExamRowData(props) {
+  let privacyMode = useContext(PrivacyMode)
   return <>
     <td>{props.examName}</td>
-    <td>{props.exam.score}</td>
-    <td>{props.exam.date.format('DD MMM YYYY')}</td>
+    <td>{privacyMode ? "X" : props.exam.score}</td>
+    <td>{privacyMode ? "X" : props.exam.date.format('DD MMM YYYY')}</td>
   </>;
 }
 
