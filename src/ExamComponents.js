@@ -1,6 +1,7 @@
-import { Col, Table } from 'react-bootstrap';
+import { Col, Table, Form, Button } from 'react-bootstrap';
 import { useState } from 'react';
 import { iconDelete, iconEdit } from './icons';
+import dayjs from 'dayjs';
 
 
 function ExamScores(props) {
@@ -11,13 +12,20 @@ function ExamScores(props) {
 
 function ExamTable(props) {
   const [exams, setExams] = useState([...props.exams]);
+  const [showForm, setShowForm] = useState(false);
+
 
   const deleteExam = (coursecode) => {
     setExams((exs) => exs.filter(ex => ex.coursecode !== coursecode))
   }
 
+  const addExam = (exam) => {
+    setExams(oldExams => [...oldExams, exam]);
+}
 
-  return (
+
+
+  return (<>
     <Table striped bordered>
       <thead>
         <tr>
@@ -37,6 +45,11 @@ function ExamTable(props) {
       }
       </tbody>
     </Table>
+    {showForm ? <ExamForm courses={props.courses}
+      addExam={(exam) => { addExam(exam); setShowForm(false); }}
+      cancel={() => setShowForm(false)} /> : <Button variant='success' onClick={() => setShowForm(true)}>Add</Button>}
+  </>
+
   );
 }
 
@@ -57,5 +70,70 @@ function RowControls(props) {
     {iconEdit} <span onClick={() => { props.deleteExam(props.exam.coursecode) }}>{iconDelete}</span>
   </td>
 }
+
+function ExamForm(props) {
+  const [course, setCourse] = useState('');
+  const [score, setScore] = useState(30);
+  const [date, setDate] = useState(dayjs());
+
+  const handleSumbit = (event) => {
+      event.preventDefault();
+      const exam = { coursecode: course, score: score, date: date };
+      // VALIDATE !!!
+      /* Validation rules: course != '', course not already in props.courses */
+      props.addExam(exam);
+  };
+
+  return (
+      <Form>
+          <Form.Group controlID='selectedCourse'>
+              <Form.Label>Course</Form.Label>
+              <Form.Control as="select" defaultValue='' value={course} onChange={ev => setCourse(ev.target.value)}>
+                  <option disabled hidden value=''>choose...</option>
+                  {props.courses.map(course => <option key={course.coursecode} value={course.coursecode}>{course.name}</option>)}
+                  {/* improvement: don't insert courses already passed */}
+              </Form.Control>
+          </Form.Group>
+          <Form.Group controlID='selectedScore'>
+              <Form.Label>Score</Form.Label>
+              <Form.Control type='number' min={18} max={31} value={score} onChange={ev => setScore(ev.target.value)} />
+          </Form.Group>
+          <Form.Group controlID='selectedDate'>
+              <Form.Label>Date</Form.Label>
+              <Form.Control type='date' value={date.format('YYYY-MM-DD')} onChange={ev => setDate(dayjs(ev.target.value))} />
+          </Form.Group>
+          <Button onClick={handleSumbit}>Save</Button> <Button variant='secondary' onClick={props.cancel}>Cancel</Button>
+      </Form>
+  )
+}
+
+
+/* ALTERNATIVE IMPLEMENTATION, WITH "NATIVE" HTML CONTROLS (WITHOUT BOOTSTRAP) */
+function ExamForm_native(props) {
+  const [course, setCourse] = useState('');
+  const [score, setScore] = useState(30);
+  const [date, setDate] = useState(dayjs());
+
+  const handleSumbit = (event) => {
+      event.preventDefault();
+      const exam = { coursecode: course, score: score, date: date };
+      props.addExam(exam);
+  };
+
+  return (
+      <form>
+          <span style={{ display: 'inline-block', width: '5em' }}>Course:</span>
+          <select value={course} onChange={ev => setCourse(ev.target.value)}>
+              {props.courses.map(course => <option key={course.coursecode} value={course.coursecode}>{course.name}</option>)}
+          </select><br />
+          <span style={{ display: 'inline-block', width: '5em' }}>Score:</span>
+          <input type='number' min={18} max={31} value={score} onChange={ev => setScore(ev.target.value)} /><br />
+          <span style={{ display: 'inline-block', width: '5em' }}>Date:</span>
+          <input type='date' value={date.format('YYYY-MM-DD')} onChange={ev => setDate(dayjs(ev.target.value))} /><br />
+          <button onClick={handleSumbit}>Save</button> <button onClick={props.cancel}>Cancel</button>
+      </form >
+  )
+}
+
 
 export default ExamScores;
