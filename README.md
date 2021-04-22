@@ -4,4 +4,5 @@ This project contains a simple example of a React application for recording the 
 
 It will be developed in phases, in several weeks, to illustrate the different features of React.
 
-* _Phase 1_: just static component rendering, and props-propagation. Uses 'fake' data and does not allow any user interaction.
+* _Phase 1_: just static component rendering, and props-propagation. Uses 'fake' data and does not allow any user interaction (except one).
+* _Phase 2_: add a form and its management.
