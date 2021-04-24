@@ -76,7 +76,7 @@ function ExamForm(props) {
   const [score, setScore] = useState(30);
   const [date, setDate] = useState(dayjs());
 
-  const handleSumbit = (event) => {
+  const handleSubmit = (event) => {
       event.preventDefault();
       const exam = { coursecode: course, score: score, date: date };
       // VALIDATE !!!
@@ -102,7 +102,7 @@ function ExamForm(props) {
               <Form.Label>Date</Form.Label>
               <Form.Control type='date' value={date.format('YYYY-MM-DD')} onChange={ev => setDate(dayjs(ev.target.value))} />
           </Form.Group>
-          <Button onClick={handleSumbit}>Save</Button> <Button variant='secondary' onClick={props.cancel}>Cancel</Button>
+          <Button onClick={handleSubmit}>Save</Button> <Button variant='secondary' onClick={props.cancel}>Cancel</Button>
       </Form>
   )
 }
@@ -114,7 +114,7 @@ function ExamForm_native(props) {
   const [score, setScore] = useState(30);
   const [date, setDate] = useState(dayjs());
 
-  const handleSumbit = (event) => {
+  const handleSubmit = (event) => {
       event.preventDefault();
       const exam = { coursecode: course, score: score, date: date };
       props.addExam(exam);
@@ -130,7 +130,7 @@ function ExamForm_native(props) {
           <input type='number' min={18} max={31} value={score} onChange={ev => setScore(ev.target.value)} /><br />
           <span style={{ display: 'inline-block', width: '5em' }}>Date:</span>
           <input type='date' value={date.format('YYYY-MM-DD')} onChange={ev => setDate(dayjs(ev.target.value))} /><br />
-          <button onClick={handleSumbit}>Save</button> <button onClick={props.cancel}>Cancel</button>
+          <button onClick={handleSubmit}>Save</button> <button onClick={props.cancel}>Cancel</button>
       </form >
   )
 }
