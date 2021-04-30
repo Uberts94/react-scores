@@ -97,18 +97,18 @@ function ExamForm(props) {
     <> {submitted ? <Redirect to="/"/> :
       <Form>
           {errorMessage ? <Alert variant='danger'>{errorMessage}</Alert> : ''}
-          <Form.Group controlID='selectedCourse'>
+          <Form.Group controlId='selectedCourse'>
               <Form.Label>Course</Form.Label>
               <Form.Control as="select" value={course} onChange={ev => setCourse(ev.target.value)} disabled={location.state}>
                 <option disabled hidden value=''>choose...</option>
                 {props.courses.map(course => <option key={course.coursecode} value={course.coursecode} >{course.name} </option>)}
               </Form.Control>
           </Form.Group>
-          <Form.Group controlID='selectedScore'>
+          <Form.Group controlId='selectedScore'>
               <Form.Label>Score</Form.Label>
               <Form.Control type='number' min={18} max={31} value={score} onChange={ev => setScore(ev.target.value)} />
           </Form.Group>
-          <Form.Group controlID='selectedDate'>
+          <Form.Group controlId='selectedDate'>
               <Form.Label>Date</Form.Label>
               <Form.Control type='date' value={date} onChange={ev => setDate(ev.target.value)} />
           </Form.Group>
