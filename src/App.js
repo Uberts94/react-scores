@@ -4,27 +4,46 @@ import { Container, Row, Alert } from 'react-bootstrap';
 import { ExamScores, ExamForm } from './ExamComponents.js';
 import AppTitle from './AppTitle.js';
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 import API from './API';
+import { LoginForm, LogoutButton } from './LoginComponents';
 
 function App() {
   const [exams, setExams] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dirty, setDirty] = useState(true);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [message, setMessage] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false); // at the beginning, no user is logged in
+
+  useEffect(()=> {
+    const checkAuth = async() => {
+      try {
+        // here you have the user info, if already logged in
+        // TODO: store them somewhere and use them, if needed
+        await API.getUserInfo();
+        setLoggedIn(true);
+      } catch(err) {
+        console.error(err.error);
+      }
+    };
+    checkAuth();
+  }, []);
 
   useEffect(()=> {
     const getCourses = async () => {
-      const courses = await API.getAllCourses();
-      setCourses(courses);
+      if(loggedIn) {
+        const courses = await API.getAllCourses();
+        setCourses(courses);
+        setDirty(true);
+      }
     };
     getCourses()
       .catch(err => {
-        setErrorMsg("Impossible to load your exams! Please, try again later...");
+        setMessage({msg: "Impossible to load your exams! Please, try again later...", type: 'danger'});
         console.error(err);
-      });;
-  }, []);
+      });
+  }, [loggedIn]);
 
   useEffect(()=> {
     const getExams = async () => {
@@ -36,13 +55,13 @@ function App() {
         setLoading(false);
         setDirty(false);
       }).catch(err => {
-        setErrorMsg("Impossible to load your exams! Please, try again later...");
+        setMessage({msg: 'Impossible to load your exams! Please, try again later...', type: 'danger'});
         console.error(err);
-      });;
+      });
     }
   }, [courses.length, dirty]);
 
-  /* With requests in parallel...
+  /* TO UPDATE: With requests in parallel...
   useEffect(() => {
     const promises = [API.getAllCourses(), API.getAllExams()];
     Promise.all(promises).then(
@@ -74,9 +93,9 @@ function App() {
 
   const handleErrors = (err) => {
     if(err.errors)
-      setErrorMsg(err.errors[0].msg + ': ' + err.errors[0].param);
+      setMessage({msg: err.errors[0].msg + ': ' + err.errors[0].param, type: 'danger'});
     else
-      setErrorMsg(err.error);
+      setMessage({msg: err.error, type: 'danger'});
     
     setDirty(true);
   }
@@ -124,15 +143,41 @@ function App() {
       }).catch(err => handleErrors(err) );;
   }
 
+  const doLogIn = async (credentials) => {
+    try {
+      const user = await API.logIn(credentials);
+      setLoggedIn(true);
+      setMessage({msg: `Welcome, ${user}!`, type: 'success'});
+    } catch(err) {
+      setMessage({msg: err, type: 'danger'});
+    }
+  }
+
+  const doLogOut = async () => {
+    await API.logOut();
+    setLoggedIn(false);
+    // clean up everything
+    setCourses([]);
+    setExams([]);
+  }
+
   const examCodes = exams.map(exam => exam.coursecode);
 
   return (<Router>
     <Container className="App">
       <Row>
-        <AppTitle />
+        <AppTitle/>
+        {loggedIn ? <LogoutButton logout={doLogOut} /> : <Redirect to="/login" />}
       </Row>
+      {message && <Row>
+         <Alert variant={message.type} onClose={() => setMessage('')} dismissible>{message.msg}</Alert>
+      </Row> }
 
       <Switch>
+        <Route path="/login" render={() => 
+          <>{loggedIn ? <Redirect to="/" /> : <LoginForm login={doLogIn} />}</>
+        }/>
+
         <Route path="/add" render={() => 
           <ExamForm courses={courses.filter(course => !examCodes.includes(course.coursecode))} addOrUpdateExam={addExam}></ExamForm>
         }/>
@@ -149,13 +194,12 @@ function App() {
 
         <Route path="/" render={() =>
         <>
-          <Row>
-          {errorMsg && <Alert variant='danger' onClose={() => setErrorMsg('')} dismissible>{errorMsg}</Alert>}
-          </Row>
-          <Row>
-            {loading ? <span>🕗 Please wait, loading your exams... 🕗</span> :
-            <ExamScores exams={exams} courses={courses} deleteExam={deleteExam}/> }
-          </Row>
+          {loggedIn ?
+            <Row>
+              {loading ? <span>🕗 Please wait, loading your exams... 🕗</span> :
+              <ExamScores exams={exams} courses={courses} deleteExam={deleteExam}/> }
+            </Row>
+          : <Redirect to="/login" /> }
         </>
         } />
         
